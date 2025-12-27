@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 24px;">Welcome, {{ student.first_name }}!</h1>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number">{{ total_records }}</div>
+            <div class="stats-label">Total Records</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number" style="color: #4caf50;">{{ present_count }}</div>
+            <div class="stats-label">Present</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number" style="color: #f44336;">{{ absent_count }}</div>
+            <div class="stats-label">Absent</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number">{{ courses|length }}</div>
+            <div class="stats-label">Courses</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2 class="card-title">Recent Attendance</h2>
+    {% if recent_attendance %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Course</th>
+                <th>Session</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Confidence</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in recent_attendance %}
+            <tr>
+                <td>{{ record.session.course_name }}</td>
+                <td>{{ record.session.session_name }}</td>
+                <td>{{ record.session.session_date }}</td>
+                <td>
+                    {% if record.status == 'present' %}
+                        <span class="badge badge-success">Present</span>
+                    {% elif record.status == 'absent' %}
+                        <span class="badge badge-danger">Absent</span>
+                    {% else %}
+                        <span class="badge badge-warning">Late</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if record.confidence_score %}
+                        {{ record.confidence_score|floatformat:2 }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No attendance records yet.</p>
+    {% endif %}
+    
+    <div style="margin-top: 16px;">
+        <a href="{% url 'student_attendance' %}" class="btn btn-primary">View All Attendance</a>
+    </div>
+</div>
+{% endblock %}
+

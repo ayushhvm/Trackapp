@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - Face Recognition Attendance System{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 100px auto;">
+    <div class="card">
+        <h2 class="card-title" style="text-align: center;">Login</h2>
+        
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label class="form-label">{{ form.user_type.label }}</label>
+                <div style="display: flex; gap: 24px;">
+                    <label style="display: flex; align-items: center;">
+                        <input type="radio" name="user_type" value="student" {% if form.user_type.value == 'student' or not form.user_type.value %}checked{% endif %}>
+                        Student
+                    </label>
+                    <label style="display: flex; align-items: center;">
+                        <input type="radio" name="user_type" value="teacher" {% if form.user_type.value == 'teacher' %}checked{% endif %}>
+                        Teacher
+                    </label>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="{{ form.user_id.id_for_label }}">{{ form.user_id.label }}</label>
+                {{ form.user_id }}
+                {% if form.user_id.help_text %}
+                    <span class="help-text">{{ form.user_id.help_text }}</span>
+                {% endif %}
+                {% if form.user_id.errors %}
+                    <div class="help-text" style="color: #f44336;">{{ form.user_id.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+                {{ form.password }}
+                {% if form.password.help_text %}
+                    <span class="help-text">{{ form.password.help_text }}</span>
+                {% endif %}
+                {% if form.password.errors %}
+                    <div class="help-text" style="color: #f44336;">{{ form.password.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

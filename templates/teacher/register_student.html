@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register Student{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 24px;">Register New Student</h1>
+
+<div class="card">
+    <form method="post" enctype="multipart/form-data" id="register-form">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.student_id.id_for_label }}">{{ form.student_id.label }}</label>
+                    {{ form.student_id }}
+                    {% if form.student_id.errors %}
+                        <div class="help-text" style="color: #f44336;">{{ form.student_id.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="help-text" style="color: #f44336;">{{ form.email.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                        <div class="help-text" style="color: #f44336;">{{ form.first_name.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                        <div class="help-text" style="color: #f44336;">{{ form.last_name.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.phone.id_for_label }}">{{ form.phone.label }}</label>
+                    {{ form.phone }}
+                    {% if form.phone.errors %}
+                        <div class="help-text" style="color: #f44336;">{{ form.phone.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.department.id_for_label }}">{{ form.department.label }}</label>
+                    {{ form.department }}
+                    {% if form.department.errors %}
+                        <div class="help-text" style="color: #f44336;">{{ form.department.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.year.id_for_label }}">{{ form.year.label }}</label>
+                    {{ form.year }}
+                    {% if form.year.errors %}
+                        <div class="help-text" style="color: #f44336;">{{ form.year.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+            {{ form.password }}
+            {% if form.password.help_text %}
+                <span class="help-text">{{ form.password.help_text }}</span>
+            {% endif %}
+            {% if form.password.errors %}
+                <div class="help-text" style="color: #f44336;">{{ form.password.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" for="id_images">{{ form.images.label }}</label>
+            {{ form.images }}
+            {% if form.images.help_text %}
+                <span class="help-text">{{ form.images.help_text }}</span>
+            {% endif %}
+            {% if form.images.errors %}
+                <div class="help-text" style="color: #f44336;">{{ form.images.errors }}</div>
+            {% endif %}
+            <div id="image-preview-container" style="display: flex; flex-wrap: wrap; margin-top: 16px;"></div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Register Student</button>
+        <a href="{% url 'view_students' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Setup multiple image preview
+    const input = document.getElementById('id_images');
+    const container = document.getElementById('image-preview-container');
+    
+    if (input && container) {
+        input.addEventListener('change', function(e) {
+            container.innerHTML = '';
+            const files = Array.from(e.target.files);
+            
+            files.forEach((file) => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.width = '150px';
+                        img.style.height = '150px';
+                        img.style.objectFit = 'cover';
+                        img.style.margin = '8px';
+                        img.style.borderRadius = '4px';
+                        img.style.border = '2px solid #ddd';
+                        container.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    }
+</script>
+{% endblock %}
+

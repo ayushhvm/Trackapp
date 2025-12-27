@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Train Model{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 24px;">Train Face Recognition Model</h1>
+
+<div class="card">
+    <h2 class="card-title">Train New Model</h2>
+    <p>This will train a new face recognition model using all registered students' face embeddings.</p>
+    
+    <form method="post" id="train-form" onsubmit="setFormLoading('train-form', true);">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Train Model</button>
+    </form>
+</div>
+
+<div class="card">
+    <h2 class="card-title">Trained Models</h2>
+    {% if models %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Model Name</th>
+                <th>Accuracy</th>
+                <th>Created At</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for model in models %}
+            <tr>
+                <td>{{ model.model_name }}</td>
+                <td>
+                    {% if model.accuracy %}
+                        {{ model.accuracy|floatformat:2 }}%
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>{{ model.created_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                    {% if model.is_active %}
+                        <span class="badge badge-success">Active</span>
+                    {% else %}
+                        <span class="badge badge-secondary">Inactive</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No models trained yet.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function setFormLoading(formId, loading) {
+        const form = document.getElementById(formId);
+        if (form) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = loading;
+                if (loading) {
+                    submitBtn.innerHTML = 'Training... Please wait';
+                }
+            }
+        }
+    }
+</script>
+{% endblock %}
+

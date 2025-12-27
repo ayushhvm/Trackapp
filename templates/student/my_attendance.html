@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Attendance{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 24px;">My Attendance</h1>
+
+<div class="card">
+    <h2 class="card-title">Filter Attendance</h2>
+    <form method="get" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: end;">
+        <div class="form-group" style="flex: 1; min-width: 200px;">
+            <label class="form-label">Course</label>
+            <input type="text" name="course" class="form-control" placeholder="Filter by course" value="{{ course_filter }}">
+        </div>
+        <div class="form-group" style="flex: 1; min-width: 200px;">
+            <label class="form-label">Session</label>
+            <input type="text" name="session" class="form-control" placeholder="Filter by session" value="{{ session_filter }}">
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="{% url 'student_attendance' %}" class="btn btn-secondary">Clear</a>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2 class="card-title">Attendance Records</h2>
+    {% if records %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Course</th>
+                <th>Session</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Confidence</th>
+                <th>Marked At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+            <tr>
+                <td>{{ record.session.course_name }}</td>
+                <td>{{ record.session.session_name }}</td>
+                <td>{{ record.session.session_date }}</td>
+                <td>{{ record.session.start_time }} - {{ record.session.end_time }}</td>
+                <td>
+                    {% if record.status == 'present' %}
+                        <span class="badge badge-success">Present</span>
+                    {% elif record.status == 'absent' %}
+                        <span class="badge badge-danger">Absent</span>
+                    {% else %}
+                        <span class="badge badge-warning">Late</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if record.confidence_score %}
+                        {{ record.confidence_score|floatformat:2 }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ record.marked_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No attendance records found.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2 class="card-title">Statistics by Course</h2>
+    {% if all_courses %}
+        {% for course in all_courses %}
+        <div style="margin-bottom: 16px;">
+            <strong>{{ course }}</strong>
+            <div style="margin-left: 16px;">
+                Total records: {{ records|length }}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+    <p>No courses found.</p>
+    {% endif %}
+</div>
+{% endblock %}
+

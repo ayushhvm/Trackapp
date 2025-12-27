@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sessions{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 24px;">Attendance Sessions</h1>
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 class="card-title" style="margin-bottom: 0;">All Sessions</h2>
+        <a href="{% url 'create_session' %}" class="btn btn-primary">Create New Session</a>
+    </div>
+    
+    {% if sessions %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Session Name</th>
+                <th>Course</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Total Records</th>
+                <th>Present</th>
+                <th>Absent</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for session in sessions %}
+            <tr>
+                <td>{{ session.session_name }}</td>
+                <td>{{ session.course_name }}</td>
+                <td>{{ session.session_date }}</td>
+                <td>{{ session.start_time }} - {{ session.end_time }}</td>
+                <td>{{ session.total_students }}</td>
+                <td>{{ session.present_count }}</td>
+                <td>{{ session.absent_count }}</td>
+                <td>
+                    {% if session.is_active %}
+                        <span class="badge badge-success">Active</span>
+                    {% else %}
+                        <span class="badge badge-secondary">Inactive</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No sessions found. <a href="{% url 'create_session' %}">Create a new session</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
