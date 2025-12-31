@@ -1,6 +1,5 @@
 from django.urls import path
 from . import views
-from . import api_views
 
 urlpatterns = [
     # Authentication
@@ -20,8 +19,5 @@ urlpatterns = [
     path('teacher/sessions/', views.view_sessions, name='view_sessions'),
     path('teacher/sessions/create/', views.create_session, name='create_session'),
     path('teacher/train-model/', views.train_model, name='train_model'),
-    
-    # API routes
-    path('api/mark-attendance/', api_views.mark_attendance_api, name='api_mark_attendance'),
 ]
 

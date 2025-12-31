@@ -270,7 +270,10 @@ def mark_attendance(request):
         form = AttendanceMarkingForm(request.POST, request.FILES)
         if form.is_valid():
             session = form.cleaned_data['session']
-            threshold = form.cleaned_data['threshold']
+            threshold = form.cleaned_data.get('threshold', 0.5)
+            latitude = form.cleaned_data.get('latitude')
+            longitude = form.cleaned_data.get('longitude')
+            location_name = form.cleaned_data.get('location_name')
             
             # Save uploaded image
             image_file = request.FILES['image']
@@ -304,6 +307,7 @@ def mark_attendance(request):
             marked_count = 0
             results = []
             for name, confidence, bbox, message in recognitions:
+                # Only process if we have a recognized name
                 if name:
                     try:
                         student = Student.objects.get(student_id=name)
@@ -317,40 +321,51 @@ def mark_attendance(request):
                         if existing:
                             results.append({
                                 'student': student,
+                                'student_id': name,
                                 'status': 'already_marked',
                                 'confidence': confidence,
                             })
                         else:
-                            # Mark attendance
+                            # Mark attendance with location data
                             attendance = AttendanceRecord.objects.create(
                                 student=student,
                                 session=session,
                                 status='present',
                                 confidence_score=confidence,
                                 image_path=image_path,
-                                marked_by='teacher'
+                                marked_by='teacher',
+                                latitude=latitude,
+                                longitude=longitude,
+                                location_name=location_name,
+                                photo_captured_at=timezone.now()
                             )
                             marked_count += 1
                             results.append({
                                 'student': student,
+                                'student_id': name,
                                 'status': 'marked',
                                 'confidence': confidence,
                                 'attendance': attendance,
                             })
                     except Student.DoesNotExist:
+                        # Student ID recognized but not found in database
                         results.append({
+                            'student': None,
                             'student_id': name,
                             'status': 'not_found',
                             'confidence': confidence,
                         })
                 else:
+                    # Face detected but not recognized or confidence too low
                     results.append({
+                        'student': None,
+                        'student_id': None,
                         'status': 'unrecognized',
                         'confidence': confidence,
                         'message': message,
                     })
             
-            messages.success(request, f'Attendance marked for {marked_count} student(s).')
+            messages.success(request, f'Attendance marked for {marked_count} student(s) at confidence threshold {threshold}.')
             context = {
                 'form': form,
                 'results': results,
@@ -419,12 +434,52 @@ def view_sessions(request):
 
 @teacher_required
 def create_session(request):
-    """Create a new attendance session"""
+    """Create a new attendance session with optional automated capture"""
     if request.method == 'POST':
         form = SessionForm(request.POST)
         if form.is_valid():
             session = form.save()
-            messages.success(request, f'Session "{session.session_name}" created successfully!')
+            
+            # Check if automated capture is enabled
+            auto_capture = form.cleaned_data.get('auto_capture', False)
+            capture_interval = form.cleaned_data.get('capture_interval', 30)
+            
+            if auto_capture:
+                # Prepare location data
+                location_data = None
+                latitude = form.cleaned_data.get('latitude')
+                longitude = form.cleaned_data.get('longitude')
+                location_name = form.cleaned_data.get('location_name')
+                device_id = form.cleaned_data.get('device_id')
+                
+                # Build location data dict if any location info is provided
+                if latitude or longitude or location_name or device_id:
+                    location_data = {
+                        'latitude': latitude,
+                        'longitude': longitude,
+                        'location_name': location_name,
+                        'device_id': device_id
+                    }
+                
+                # Start automated attendance capture with location data
+                from .utils.automated_attendance import start_automated_attendance
+                try:
+                    start_automated_attendance(
+                        session_id=session.id,
+                        camera_index=0,
+                        capture_interval=capture_interval,
+                        location_data=location_data
+                    )
+                    location_msg = f" at {location_name}" if location_name else ""
+                    messages.success(request, 
+                        f'Session "{session.session_name}" created with automated attendance enabled{location_msg}! '
+                        f'Captures will occur every {capture_interval} seconds.')
+                except Exception as e:
+                    messages.warning(request, 
+                        f'Session created but automated capture failed to start: {str(e)}')
+            else:
+                messages.success(request, f'Session "{session.session_name}" created successfully!')
+            
             return redirect('view_sessions')
     else:
         form = SessionForm()

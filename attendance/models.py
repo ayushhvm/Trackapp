@@ -104,28 +104,80 @@ class AttendanceRecord(models.Model):
         ('present', 'Present'),
         ('absent', 'Absent'),
         ('late', 'Late'),
+        ('pending', 'Pending Verification'),  # New status for unverified attendance
     ]
-
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='attendance_records')
     session = models.ForeignKey(AttendanceSession, on_delete=models.CASCADE, related_name='attendance_records')
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='absent')
-    marked_at = models.DateTimeField(default=timezone.now)  # Server timestamp
-    photo_captured_at = models.DateTimeField(blank=True, null=True)  # When photo was taken on device
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    marked_at = models.DateTimeField(default=timezone.now)
     confidence_score = models.FloatField(blank=True, null=True)  # Confidence from face recognition
     image_path = models.CharField(max_length=500, blank=True, null=True)  # Path to captured image
     marked_by = models.CharField(max_length=100, default='system')  # 'system' for auto, or admin name
-    device_id = models.CharField(max_length=100, blank=True, null=True)  # Raspberry Pi identifier
-    location_name = models.CharField(max_length=200, blank=True, null=True)  # Manual location name
-    latitude = models.FloatField(blank=True, null=True)  # GPS latitude
-    longitude = models.FloatField(blank=True, null=True)  # GPS longitude
     notes = models.TextField(blank=True, null=True)
-
+    
+    # Location tracking fields
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+    location_name = models.CharField(max_length=200, blank=True, null=True)
+    device_id = models.CharField(max_length=100, blank=True, null=True)
+    photo_captured_at = models.DateTimeField(blank=True, null=True)
+    
+    # Verification fields for multi-capture attendance
+    is_verified = models.BooleanField(default=False)
+    total_captures = models.IntegerField(default=0)  # Total number of captures student appeared in
+    present_in_start = models.BooleanField(default=False)  # Present in first few captures
+    present_in_end = models.BooleanField(default=False)  # Present in last few captures
+    verification_notes = models.TextField(blank=True, null=True)
+    
     class Meta:
         unique_together = ['student', 'session']
         ordering = ['-marked_at']
-
+    
     def __str__(self):
         return f"{self.student.student_id} - {self.session.course_name} - {self.status}"
+
+
+class CaptureRecord(models.Model):
+    """Model to track individual photo captures during a session"""
+    session = models.ForeignKey(AttendanceSession, on_delete=models.CASCADE, related_name='captures')
+    capture_number = models.IntegerField()  # Sequential number of capture (1, 2, 3, ...)
+    image_path = models.CharField(max_length=500)
+    captured_at = models.DateTimeField(auto_now_add=True)
+    
+    # Location data
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+    location_name = models.CharField(max_length=200, blank=True, null=True)
+    
+    # Processing status
+    is_processed = models.BooleanField(default=False)
+    faces_detected = models.IntegerField(default=0)
+    
+    class Meta:
+        ordering = ['session', 'capture_number']
+        unique_together = ['session', 'capture_number']
+    
+    def __str__(self):
+        return f"Capture #{self.capture_number} - {self.session.session_name}"
+
+
+class StudentCapture(models.Model):
+    """Model to track which students appeared in each capture"""
+    capture = models.ForeignKey(CaptureRecord, on_delete=models.CASCADE, related_name='student_detections')
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='capture_appearances')
+    confidence_score = models.FloatField()
+    bbox_x = models.IntegerField(blank=True, null=True)  # Bounding box coordinates
+    bbox_y = models.IntegerField(blank=True, null=True)
+    bbox_w = models.IntegerField(blank=True, null=True)
+    bbox_h = models.IntegerField(blank=True, null=True)
+    detected_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['capture__capture_number']
+        unique_together = ['capture', 'student']
+    
+    def __str__(self):
+        return f"{self.student.student_id} in Capture #{self.capture.capture_number}"
 
 
 class FaceRecognitionModel(models.Model):

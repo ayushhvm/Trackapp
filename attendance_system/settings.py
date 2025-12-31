@@ -126,6 +126,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Face Recognition Settings
 FACE_IMAGES_DIR = MEDIA_ROOT / 'faces'
+FACES_DIR = MEDIA_ROOT / 'faces'  # Add alias for compatibility
 FACE_MODELS_DIR = MEDIA_ROOT / 'models'
 ATTENDANCE_IMAGES_DIR = MEDIA_ROOT / 'attendance_images'
 

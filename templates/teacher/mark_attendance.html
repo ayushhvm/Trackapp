@@ -1,120 +1,183 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Mark Attendance{% endblock %}
-
-{% block content %}
-<h1 style="margin-bottom: 24px;">Mark Attendance</h1>
+{% extends 'base.html' %} {% load static %} {% block title %}Mark
+Attendance{%endblock %} {% block content %}
+<h1 style="margin-bottom: 24px">Mark Attendance</h1>
 
 <div class="card">
-    <form method="post" enctype="multipart/form-data" id="attendance-form">
-        {% csrf_token %}
-        
-        <div class="form-group">
-            <label class="form-label" for="{{ form.session.id_for_label }}">{{ form.session.label }}</label>
-            {{ form.session }}
-            {% if form.session.errors %}
-                <div class="help-text" style="color: #f44336;">{{ form.session.errors }}</div>
-            {% endif %}
-        </div>
-        
-        <div class="form-group">
-            <label class="form-label" for="{{ form.image.id_for_label }}">{{ form.image.label }}</label>
-            {{ form.image }}
-            {% if form.image.help_text %}
-                <span class="help-text">{{ form.image.help_text }}</span>
-            {% endif %}
-            {% if form.image.errors %}
-                <div class="help-text" style="color: #f44336;">{{ form.image.errors }}</div>
-            {% endif %}
-            <img id="attendance-image-preview" class="image-preview" style="display: none; margin-top: 16px;">
-        </div>
-        
-        <div class="form-group">
-            <label class="form-label" for="{{ form.threshold.id_for_label }}">{{ form.threshold.label }}</label>
-            {{ form.threshold }}
-            {% if form.threshold.help_text %}
-                <span class="help-text">{{ form.threshold.help_text }}</span>
-            {% endif %}
-            {% if form.threshold.errors %}
-                <div class="help-text" style="color: #f44336;">{{ form.threshold.errors }}</div>
-            {% endif %}
-        </div>
-        
-        <button type="submit" class="btn btn-primary">Mark Attendance</button>
-    </form>
+  <form method="post" enctype="multipart/form-data" id="attendance-form">
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label class="form-label" for="{{ form.session.id_for_label }}"
+        >{{ form.session.label }}</label
+      >
+      {{ form.session }} {% if form.session.errors %}
+      <div class="help-text" style="color: #f44336">
+        {{ form.session.errors }}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="{{ form.image.id_for_label }}"
+        >{{ form.image.label }}</label
+      >
+      {{ form.image }} {% if form.image.help_text %}
+      <span class="help-text">{{ form.image.help_text }}</span>
+      {% endif %} {% if form.image.errors %}
+      <div class="help-text" style="color: #f44336">
+        {{ form.image.errors }}
+      </div>
+      {% endif %}
+      <img
+        id="attendance-image-preview"
+        class="image-preview"
+        style="display: none; margin-top: 16px"
+      />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="{{ form.threshold.id_for_label }}"
+        >{{ form.threshold.label }}</label
+      >
+      {{ form.threshold }} {% if form.threshold.help_text %}
+      <span class="help-text">{{ form.threshold.help_text }}</span>
+      {% endif %} {% if form.threshold.errors %}
+      <div class="help-text" style="color: #f44336">
+        {{ form.threshold.errors }}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="{{ form.location_name.id_for_label }}"
+        >{{ form.location_name.label }}</label
+      >
+      {{ form.location_name }} {{ form.latitude }} {{ form.longitude }}
+      <button
+        type="button"
+        class="btn btn-secondary"
+        id="get-location-btn"
+        style="margin-top: 8px"
+      >
+        📍 Get Current Location
+      </button>
+      <span class="help-text">Click to capture your current GPS location</span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Mark Attendance</button>
+  </form>
 </div>
 
 {% if results %}
 <div class="card">
-    <h2 class="card-title">Recognition Results - {{ session.course_name }}</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Student</th>
-                <th>Status</th>
-                <th>Confidence</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for result in results %}
-            <tr>
-                <td>
-                    {% if result.student %}
-                        {{ result.student.student_id }} - {{ result.student.first_name }} {{ result.student.last_name }}
-                    {% elif result.student_id %}
-                        {{ result.student_id }} (Not found in database)
-                    {% else %}
-                        Unknown
-                    {% endif %}
-                </td>
-                <td>
-                    {% if result.status == 'marked' %}
-                        <span class="badge badge-success">Marked Present</span>
-                    {% elif result.status == 'already_marked' %}
-                        <span class="badge badge-warning">Already Marked</span>
-                    {% elif result.status == 'not_found' %}
-                        <span class="badge badge-danger">Student Not Found</span>
-                    {% else %}
-                        <span class="badge badge-danger">Unrecognized</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if result.confidence %}
-                        {{ result.confidence|floatformat:2 }}
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+  <h2 class="card-title">Recognition Results - {{ session.course_name }}</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Student</th>
+        <th>Status</th>
+        <th>Confidence</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for result in results %}
+      <tr>
+        <td>
+          {% if result.student %} {{ result.student.student_id }} - {{result.student.first_name }} {{ result.student.last_name }}
+          {% elif result.student_id %} {{ result.student_id }} (Not found in database)
+          {% else %} Unknown {% endif %}
+        </td>
+        <td>
+          {% if result.status == 'marked' %}
+          <span class="badge badge-success">Marked Present</span>
+          {% elif result.status == 'already_marked' %}
+          <span class="badge badge-warning">Already Marked</span>
+          {% elif result.status == 'not_found' %}
+          <span class="badge badge-danger">Student Not Found</span>
+          {% else %}
+          <span class="badge badge-danger">Unrecognized</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if result.confidence %} {{ result.confidence|floatformat:2 }}
+          {% else %} - {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
-{% endif %}
-{% endblock %}
-
-{% block extra_js %}
+{% endif %} {% endblock %} {% block extra_js %}
 <script>
-    // Setup image preview
-    const input = document.getElementById('attendance-image-input');
-    const preview = document.getElementById('attendance-image-preview');
-    
-    if (input && preview) {
-        input.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            } else {
-                preview.style.display = 'none';
-            }
-        });
-    }
+  // Setup image preview
+  const input = document.getElementById("attendance-image-input");
+  const preview = document.getElementById("attendance-image-preview");
+
+  if (input && preview) {
+    input.addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          preview.src = e.target.result;
+          preview.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      } else {
+        preview.style.display = "none";
+      }
+    });
+  }
+
+  // Location capture
+  const getLocationBtn = document.getElementById("get-location-btn");
+  const latitudeInput = document.getElementById("id_latitude");
+  const longitudeInput = document.getElementById("id_longitude");
+  const locationNameInput = document.getElementById("id_location_name");
+
+  if (getLocationBtn) {
+    getLocationBtn.addEventListener("click", function () {
+      if (!navigator.geolocation) {
+        alert("Geolocation is not supported by your browser");
+        return;
+      }
+
+      getLocationBtn.textContent = "⏳ Getting location...";
+      getLocationBtn.disabled = true;
+
+      navigator.geolocation.getCurrentPosition(
+        function (position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+
+          latitudeInput.value = lat;
+          longitudeInput.value = lon;
+
+          // Reverse geocoding to get location name (using OpenStreetMap Nominatim)
+          fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+          )
+            .then((response) => response.json())
+            .then((data) => {
+              const locationName =
+                data.display_name || `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+              locationNameInput.value = locationName;
+              getLocationBtn.textContent = "✓ Location Captured";
+              getLocationBtn.disabled = false;
+            })
+            .catch((error) => {
+              locationNameInput.value = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+              getLocationBtn.textContent = "✓ Location Captured";
+              getLocationBtn.disabled = false;
+            });
+        },
+        function (error) {
+          alert("Unable to get location: " + error.message);
+          getLocationBtn.textContent = "📍 Get Current Location";
+          getLocationBtn.disabled = false;
+        }
+      );
+    });
+  }
 </script>
 {% endblock %}
-

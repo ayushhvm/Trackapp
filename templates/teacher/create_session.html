@@ -1,63 +1,228 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Create Session{% endblock %}
-
-{% block content %}
-<h1 style="margin-bottom: 24px;">Create Attendance Session</h1>
+{% extends 'base.html' %} {% load static %} {% block title %}Create
+Session{%endblock %} {% block content %}
+<h1 style="margin-bottom: 24px">Create Attendance Session</h1>
 
 <div class="card">
-    <form method="post">
-        {% csrf_token %}
-        
-        <div class="form-group">
-            <label class="form-label" for="{{ form.session_name.id_for_label }}">{{ form.session_name.label }}</label>
-            {{ form.session_name }}
-            {% if form.session_name.errors %}
-                <div class="help-text" style="color: #f44336;">{{ form.session_name.errors }}</div>
-            {% endif %}
-        </div>
-        
-        <div class="form-group">
-            <label class="form-label" for="{{ form.course_name.id_for_label }}">{{ form.course_name.label }}</label>
-            {{ form.course_name }}
-            {% if form.course_name.errors %}
-                <div class="help-text" style="color: #f44336;">{{ form.course_name.errors }}</div>
-            {% endif %}
-        </div>
-        
-        <div class="form-group">
-            <label class="form-label" for="{{ form.session_date.id_for_label }}">{{ form.session_date.label }}</label>
-            {{ form.session_date }}
-            {% if form.session_date.errors %}
-                <div class="help-text" style="color: #f44336;">{{ form.session_date.errors }}</div>
-            {% endif %}
-        </div>
-        
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label class="form-label" for="{{ form.start_time.id_for_label }}">{{ form.start_time.label }}</label>
-                    {{ form.start_time }}
-                    {% if form.start_time.errors %}
-                        <div class="help-text" style="color: #f44336;">{{ form.start_time.errors }}</div>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label class="form-label" for="{{ form.end_time.id_for_label }}">{{ form.end_time.label }}</label>
-                    {{ form.end_time }}
-                    {% if form.end_time.errors %}
-                        <div class="help-text" style="color: #f44336;">{{ form.end_time.errors }}</div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        
-        <button type="submit" class="btn btn-primary">Create Session</button>
-        <a href="{% url 'view_sessions' %}" class="btn btn-secondary">Cancel</a>
-    </form>
-</div>
-{% endblock %}
+  <form method="post" id="session-form">
+    {% csrf_token %}
 
+    <div class="form-group">
+      <label class="form-label" for="{{ form.session_name.id_for_label }}"
+        >{{ form.session_name.label }}</label
+      >
+      {{ form.session_name }} {% if form.session_name.errors %}
+      <div class="help-text" style="color: #f44336">
+        {{ form.session_name.errors }}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="{{ form.course_name.id_for_label }}"
+        >{{ form.course_name.label }}</label
+      >
+      {{ form.course_name }} {% if form.course_name.errors %}
+      <div class="help-text" style="color: #f44336">
+        {{ form.course_name.errors }}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="{{ form.session_date.id_for_label }}"
+        >{{ form.session_date.label }}</label
+      >
+      {{ form.session_date }} {% if form.session_date.errors %}
+      <div class="help-text" style="color: #f44336">
+        {{ form.session_date.errors }}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="{{ form.start_time.id_for_label }}"
+            >{{ form.start_time.label }}</label
+          >
+          {{ form.start_time }} {% if form.start_time.errors %}
+          <div class="help-text" style="color: #f44336">
+            {{ form.start_time.errors }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="{{ form.end_time.id_for_label }}"
+            >{{ form.end_time.label }}</label
+          >
+          {{ form.end_time }} {% if form.end_time.errors %}
+          <div class="help-text" style="color: #f44336">
+            {{ form.end_time.errors }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="card"
+      style="background: #f5f5f5; padding: 16px; margin: 20px 0"
+    >
+      <h3 style="margin-top: 0">Automated Attendance Settings</h3>
+
+      <div class="form-group">
+        <div class="form-check">
+          {{ form.auto_capture }}
+          <label
+            class="form-check-label"
+            for="{{ form.auto_capture.id_for_label }}"
+          >
+            {{ form.auto_capture.label }}
+          </label>
+        </div>
+        {% if form.auto_capture.help_text %}
+        <span class="help-text">{{ form.auto_capture.help_text }}</span>
+        {% endif %}
+      </div>
+
+      <div class="form-group" id="capture-interval-group">
+        <label class="form-label" for="{{ form.capture_interval.id_for_label }}"
+          >{{ form.capture_interval.label }}</label
+        >
+        {{ form.capture_interval }} {% if form.capture_interval.help_text %}
+        <span class="help-text">{{ form.capture_interval.help_text }}</span>
+        {% endif %} {% if form.capture_interval.errors %}
+        <div class="help-text" style="color: #f44336">
+          {{ form.capture_interval.errors }}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Location fields -->
+      <div class="form-group">
+        <label class="form-label">{{ form.location_name.label }}</label>
+        {{ form.location_name }}
+        <button
+          type="button"
+          class="btn btn-secondary"
+          id="get-location-btn"
+          style="margin-top: 8px"
+        >
+          📍 Get Current Location
+        </button>
+        <span class="help-text"
+          >Location will be captured for all automated attendance records</span
+        >
+      </div>
+
+      <!-- Hidden location fields -->
+      {{ form.latitude }} {{ form.longitude }} {{ form.device_id }}
+
+      <div
+        class="alert"
+        style="
+          background: #e3f2fd;
+          padding: 12px;
+          border-left: 4px solid #2196f3;
+        "
+      >
+        <strong>Note:</strong> When automated attendance is enabled, the system
+        will:
+        <ul style="margin: 8px 0 0 20px">
+          <li>Automatically capture photos during the session time</li>
+          <li>Mark attendance at 0.5 confidence threshold</li>
+          <li>Save all captures with timestamps and location data</li>
+        </ul>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create Session</button>
+    <a href="{% url 'view_sessions' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  // Toggle capture interval visibility based on auto_capture checkbox
+  const autoCapture = document.getElementById(
+    "{{ form.auto_capture.id_for_label }}"
+  );
+  const intervalGroup = document.getElementById("capture-interval-group");
+
+  if (autoCapture && intervalGroup) {
+    function toggleInterval() {
+      intervalGroup.style.display = autoCapture.checked ? "block" : "none";
+    }
+
+    autoCapture.addEventListener("change", toggleInterval);
+    toggleInterval(); // Initialize on page load
+  }
+
+  // Location detection
+  const getLocationBtn = document.getElementById("get-location-btn");
+  const latitudeField = document.getElementById("session_latitude");
+  const longitudeField = document.getElementById("session_longitude");
+  const locationNameField = document.getElementById("session_location_name");
+  const deviceIdField = document.getElementById("session_device_id");
+
+  if (getLocationBtn) {
+    getLocationBtn.addEventListener("click", function () {
+      if (!navigator.geolocation) {
+        alert("Geolocation is not supported by your browser");
+        return;
+      }
+
+      getLocationBtn.textContent = "📍 Getting location...";
+      getLocationBtn.disabled = true;
+
+      navigator.geolocation.getCurrentPosition(
+        function (position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+
+          latitudeField.value = lat;
+          longitudeField.value = lon;
+
+          // Generate device ID if not exists
+          if (!deviceIdField.value) {
+            deviceIdField.value = "web_" + Date.now();
+          }
+
+          // Reverse geocoding to get location name
+          fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+          )
+            .then((response) => response.json())
+            .then((data) => {
+              const locationName =
+                data.display_name || `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+              locationNameField.value = locationName;
+              getLocationBtn.textContent = "✓ Location Captured";
+              getLocationBtn.disabled = false;
+              getLocationBtn.style.backgroundColor = "#4caf50";
+            })
+            .catch((error) => {
+              console.error("Geocoding error:", error);
+              locationNameField.value = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+              getLocationBtn.textContent = "✓ Location Captured";
+              getLocationBtn.disabled = false;
+              getLocationBtn.style.backgroundColor = "#4caf50";
+            });
+        },
+        function (error) {
+          console.error("Geolocation error:", error);
+          alert("Unable to get location: " + error.message);
+          getLocationBtn.textContent = "📍 Get Current Location";
+          getLocationBtn.disabled = false;
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+    });
+  }
+</script>
+{% endblock %}

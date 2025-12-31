@@ -109,7 +109,7 @@ class AttendanceMarkingForm(forms.Form):
     )
     threshold = forms.FloatField(
         label='Confidence Threshold',
-        initial=0.6,
+        initial=0.5,  # Changed from 0.6 to 0.5
         min_value=0.0,
         max_value=1.0,
         widget=forms.NumberInput(attrs={
@@ -118,12 +118,74 @@ class AttendanceMarkingForm(forms.Form):
             'min': '0',
             'max': '1'
         }),
-        help_text='Minimum confidence score (0.0 - 1.0)'
+        help_text='Minimum confidence score (0.0 - 1.0). Default: 0.5 for auto-marking'
+    )
+    # Optional location fields
+    latitude = forms.FloatField(
+        required=False,
+        widget=forms.HiddenInput(attrs={'id': 'id_latitude'})
+    )
+    longitude = forms.FloatField(
+        required=False,
+        widget=forms.HiddenInput(attrs={'id': 'id_longitude'})
+    )
+    location_name = forms.CharField(
+        max_length=200,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Location will be auto-detected',
+            'readonly': 'readonly'
+        }),
+        label='Location'
     )
 
 
 class SessionForm(forms.ModelForm):
     """Form for creating/editing attendance sessions"""
+    auto_capture = forms.BooleanField(
+        required=False,
+        initial=True,
+        label='Enable Automated Attendance',
+        help_text='Automatically capture and mark attendance during session time',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    capture_interval = forms.IntegerField(
+        required=False,
+        initial=30,
+        min_value=10,
+        max_value=300,
+        label='Capture Interval (seconds)',
+        help_text='Time between automatic photo captures (10-300 seconds)',
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '10', 'max': '300'})
+    )
+    
+    # Location fields for automated attendance
+    latitude = forms.FloatField(
+        required=False,
+        widget=forms.HiddenInput(attrs={'id': 'session_latitude'})
+    )
+    longitude = forms.FloatField(
+        required=False,
+        widget=forms.HiddenInput(attrs={'id': 'session_longitude'})
+    )
+    location_name = forms.CharField(
+        max_length=200,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Location will be auto-detected',
+            'readonly': 'readonly',
+            'id': 'session_location_name'
+        }),
+        label='Location'
+    )
+    device_id = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.HiddenInput(attrs={'id': 'session_device_id'})
+    )
+    
     class Meta:
         model = AttendanceSession
         fields = ['session_name', 'course_name', 'session_date', 'start_time', 'end_time']
